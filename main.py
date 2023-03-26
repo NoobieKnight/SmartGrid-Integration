@@ -17,8 +17,6 @@ for i in range(len(home.current_subscription.price_info.today)):
             sNextHour = home.current_subscription.price_info.tomorrow[0].starts_at
         break
 
-print(len(home.current_subscription.price_info.today))
-
 if sCurrentLevel == "NORMAL":
     # Normal operation
     Q0 = False
