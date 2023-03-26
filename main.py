@@ -2,10 +2,10 @@
 import tibber
 
 import ntp
+import sub-modules
 
-
-tCurrentHour = ntp.getNTPTime("pool.ntp.org",+1)
-tNextHour = ntp.getNTPTime("pool.ntp.org",+2)
+tCurrentHour = sub-modules.getNTPTime("pool.ntp.org", +1)
+tNextHour = ntp.getNTPTime("pool.ntp.org", +2)
 
 
 account = tibber.Account("xdZ5baalsmyHerIU629KPR_dMfuewosNllYTzhCq8E8")
