@@ -7,5 +7,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENTRYPOINT [ "python", "-m" ]
+ENTRYPOINT [ "python", "./main.py" ]
 EXPOSE 5000
