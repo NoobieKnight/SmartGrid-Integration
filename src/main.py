@@ -9,11 +9,11 @@ import sys
 import getopt
 
 # Default values of arguments
-arg_api_token = "xdZ5baalsmyHerIU629KPR_dMfuewosNllYTzhCq8E8"
+arg_api_token = ""
 arg_upd = 120
 arg_home = 0
-arg_relay_1 = "192.168.20.18"
-arg_relay_2 = "192.168.20.19"
+arg_relay_1 = ""
+arg_relay_2 = ""
 arg_port = 5000
 arg_min_temp = 18.0
 arg_max_temp = 22.0
