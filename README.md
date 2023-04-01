@@ -28,26 +28,41 @@ My steps (probably not the most efficant/best)
 
 Arguments avalible:
 --api_token
+
 Tibber API token
   
+  
 --relay_1
+
 IP for Shelly relay 1
   
+  
 --relay_2
+
 IP for Shelly relay 2
   
+  
 --home_id
+
 Home ID from Tibber (Default = 0) Use this if you have multiple houses with Tibber subscription
   
+  
 --min_temp
+
 Lowest temperature to allow no production (Default = 18.0)
   
+  
 --max_temp
+
 Maximum temperature to allow for extra production (Default = 22.0)
   
+  
 --port
+
 Port for webhook server (Default = 5000)
   
+  
 --upd_interval
+
 Update interval for Tibber (Default = 120)
   
