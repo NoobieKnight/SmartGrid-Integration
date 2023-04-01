@@ -37,7 +37,6 @@ tibberUpToDate = False
 run = True
 
 
-
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         global rActTemp
@@ -88,6 +87,9 @@ def main():
     iNextHourLevel = 0
     sCurrentHour = "NaN"
     sNextHour = "NaN"
+    rActTemp_last = rActTemp
+    iCurrentLevel_last = iCurrentLevel
+    iNextHourLevel_last = iNextHourLevel
 
     while run:
         if tibberUpToDate:
@@ -106,17 +108,22 @@ def main():
 
         q = logic.main(iCurrentLevel, iNextHourLevel, rActTemp, args.min_temp, args.max_temp)
 
-        print(f"Current temperature = {rActTemp}")
-        print(f"Current level = {iCurrentLevel} @ {sCurrentHour}")
-        print(f"Next level = {iNextHourLevel} @ {sNextHour}")
-        print(f"Q0 = {q[0]}")
-        print(f"Q1 = {q[1]}")
+        if rActTemp != rActTemp_last or iCurrentLevel != iCurrentLevel_last or iNextHourLevel != iNextHourLevel_last:
+            print(f"Current temperature = {rActTemp}")
+            print(f"Current level = {iCurrentLevel} @ {sCurrentHour}")
+            print(f"Next level = {iNextHourLevel} @ {sNextHour}")
+            print(f"Q0 = {q[0]}")
+            print(f"Q1 = {q[1]}")
+            try:
+                cShelly_Relay1.relay(0, turn=q[0])
+                cShelly_Relay2.relay(0, turn=q[1])
+            except:
+                print("Unable to send data to relays")
 
-        try:
-            cShelly_Relay1.relay(0, turn=q[0])
-            cShelly_Relay2.relay(0, turn=q[1])
-        except:
-            print("Unable to send data to relays")
+        rActTemp_last = rActTemp
+        iCurrentLevel_last = iCurrentLevel
+        iNextHourLevel_last = iNextHourLevel
+
 
         time.sleep(cInterval)
 
