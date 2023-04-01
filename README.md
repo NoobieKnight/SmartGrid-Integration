@@ -18,6 +18,7 @@ I run the script in a docker container on my unraid server, but it's also possib
 
 Update actual temperature by sending a GET request to [IP]:[PORT]/t=[temperature]
 This can be done by setting up a webhook in a shelly plus H/T
+  http://[IP]:[PORT]/t=$temperature
   
 
 My steps (probably not the most efficant/best)
