@@ -20,8 +20,7 @@ This can be done by setting up a webhook in a shelly plus H/T
 
 My steps (probably not the most efficant/best)
 1. docker build -t tibber_smartgrid https://github.com/NoobieKnight/SmartGrid-Integration.git
-2. docker images
-  * To figure out the image id
+2. docker images (To figure out the image id)
 3. docker run -d --name=tibber_smartgrid --net=bridge -p 5000:5000 [image id from previus step] \
                  --api_token "[API token for Tibber]" \
                  --relay_1 "[Shelly relay 1 IP]" \
