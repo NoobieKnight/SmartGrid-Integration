@@ -2,6 +2,8 @@
 
 This Python script controls two shelly relays to integrate smart grid integration in to compatible heat pumps, with the help of the Tibber API
 
+This is the first thing I've done in python so its quite rough
+
 # Things needed
 
 * A Tibber subscription
