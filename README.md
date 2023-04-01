@@ -17,6 +17,7 @@ This is the first thing I've done in python so its quite rough
 I run the script in a docker container on my unraid server, but it's also possible to run on real hardware or vm
 
 Update actual temperature by sending a GET request to [IP]:[PORT]/t=[temperature]
+
 This can be done by setting up a webhook in a shelly plus H/T
   http://[IP]:[PORT]/t=$temperature
   
