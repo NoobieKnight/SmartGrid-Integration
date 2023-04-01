@@ -27,20 +27,27 @@ My steps (probably not the most efficant/best)
                  --relay_2 "[Shelly relay 2 IP]"
 
 Arguments avalible:
---api_token \n
-  Tibber API token \n
---relay_1 \n
-  IP for Shelly relay 1 \n
---relay_2 \n
-  IP for Shelly relay 2 \n
---home_id \n
-  Home ID from Tibber (Default = 0) Use this if you have multiple houses with Tibber subscription \n
---min_temp \n
-  Lowest temperature to allow no production (Default = 18.0) \n
---max_temp \n
-  Maximum temperature to allow for extra production (Default = 22.0) \n
---port \n
-  Port for webhook server (Default = 5000) \n
---upd_interval \n
-  Update interval for Tibber (Default = 120) \n
+--api_token
+  Tibber API token
+  
+--relay_1
+  IP for Shelly relay 1
+  
+--relay_2
+  IP for Shelly relay 2
+  
+--home_id
+  Home ID from Tibber (Default = 0) Use this if you have multiple houses with Tibber subscription
+  
+--min_temp
+  Lowest temperature to allow no production (Default = 18.0)
+  
+--max_temp
+  Maximum temperature to allow for extra production (Default = 22.0)
+  
+--port
+  Port for webhook server (Default = 5000)
+  
+--upd_interval
+  Update interval for Tibber (Default = 120)
   
