@@ -27,6 +27,7 @@ My steps (probably not the most efficant/best)
                  --relay_2 "[Shelly relay 2 IP]"
 
 Arguments avalible:
+
 --api_token
 
 Tibber API token
