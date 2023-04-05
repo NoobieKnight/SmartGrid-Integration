@@ -111,6 +111,7 @@ def main():
     rActTemp_last = rActTemp
     iCurrentState_last = iCurrentState
     iNextHourState_last = iNextHourState
+    q = [False, False]
 
     while run:
         if tibberUpToDate:
@@ -128,23 +129,23 @@ def main():
 
         if iCurrentState == 0 and rActTemp >= args.min_temp:
             # Turn off heating
-            Q0 = False
-            Q1 = True
+            q[0] = False
+            q[1] = True
         elif iCurrentState == 1:
             # Normal operation
-            Q0 = False
-            Q1 = False
+            q[0] = False
+            q[1] = False
         elif iCurrentState == 2:
             # DHW temp increased
-            Q0 = True
-            Q1 = False
+            q[0] = True
+            q[1] = False
         elif iCurrentState == 3 and rActTemp <= args.max_temp:
             # Heat to max temperature
-            Q0 = True
-            Q1 = True
+            q[0] = True
+            q[1] = True
         else:
-            Q0 = False
-            Q1 = False
+            q[0] = False
+            q[1] = False
 
         if rActTemp != rActTemp_last or iCurrentState != iCurrentState_last or iNextHourState != iNextHourState_last:
             print(f"Current temperature = {rActTemp}")
