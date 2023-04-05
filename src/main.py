@@ -4,7 +4,6 @@ import time
 import tibber
 import ShellyPy
 from http.server import HTTPServer, BaseHTTPRequestHandler
-import logic
 import argparse
 
 
@@ -35,6 +34,7 @@ cInterval = 10
 rActTemp = 20.0
 tibberUpToDate = False
 run = True
+priceArrayToday = []
 
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -50,25 +50,10 @@ def handler_stop_signals(signum, frame):
     run = False
 
 
-def stringLevelToInt(string):
-    if string == "VERY_CHEAP":
-        return 1
-    elif string == "CHEAP":
-        return 2
-    elif string == "NORMAL":
-        return 3
-    elif string == "EXPENSIVE":
-        return 4
-    elif string == "VERY_EXPENSIVE":
-        return 5
-    else:
-        return 0
-
-
 def getTibberData():
     global home
     global tibberUpToDate
-
+    global priceArrayToday
     while run:
         try:
             # Get Tibber data
@@ -78,40 +63,93 @@ def getTibberData():
             print("Tibber: Connection error")
             tibberUpToDate = False
         else:
+            # Declare lists
+            priceArrayToday = []
+            priceArrayToday_AM = []
+            priceArrayToday_PM = []
+
+            # Copy data from Tibber
+            for i in range(len(home.current_subscription.price_info.today)):
+
+                # Copy to standard list
+                priceArrayToday.append(1)
+
+                # Copy to list for before midday
+                if i < 12:
+                    priceArrayToday_AM.append([0.0, 0])
+                    priceArrayToday_AM[i][0] = home.current_subscription.price_info.today[i].total
+                    priceArrayToday_AM[i][1] = i
+
+                # Copy to list for after midday
+                else:
+                    priceArrayToday_PM.append([0.0, 0])
+                    priceArrayToday_PM[i - 12][0] = home.current_subscription.price_info.today[i].total
+                    priceArrayToday_PM[i - 12][1] = i
+
+            # Sort the lists according to price (Descending)
+            priceArrayToday_AM.sort(reverse=True, key=lambda l: l[0])
+            priceArrayToday_PM.sort(reverse=True, key=lambda l: l[0])
+
+            # Turn off heatpump for the 3 most expensive hours in both before and after midday
+            for i in range(3):
+                # Most expensive, Turn heatpump off
+                priceArrayToday[priceArrayToday_AM[i][1]] = 0
+                priceArrayToday[priceArrayToday_PM[i][1]] = 0
+                # Cheapest, Turn heatpump on
+                priceArrayToday[priceArrayToday_AM[len(priceArrayToday_AM) - i - 1][1]] = 3
+                priceArrayToday[priceArrayToday_PM[len(priceArrayToday_PM) - i - 1][1]] = 3
+
             tibberUpToDate = True
         time.sleep(args.upd_interval)
 
 
 def main():
-    iCurrentLevel = 0
-    iNextHourLevel = 0
+    iCurrentState = 1
+    iNextHourState = 1
     sCurrentHour = "NaN"
     sNextHour = "NaN"
     rActTemp_last = rActTemp
-    iCurrentLevel_last = iCurrentLevel
-    iNextHourLevel_last = iNextHourLevel
+    iCurrentState_last = iCurrentState
+    iNextHourState_last = iNextHourState
 
     while run:
         if tibberUpToDate:
             sCurrentHour = home.current_subscription.price_info.current.starts_at
-            iCurrentLevel = stringLevelToInt(home.current_subscription.price_info.current.level)
-
+            # Loop list until current hour found in array
             for i in range(len(home.current_subscription.price_info.today)):
                 if home.current_subscription.price_info.current.starts_at == home.current_subscription.price_info.today[i].starts_at:
-                    if i < len(home.current_subscription.price_info.today) - 1:
-                        iNextHourLevel = stringLevelToInt(home.current_subscription.price_info.today[i + 1].level)
-                        sNextHour = home.current_subscription.price_info.today[i + 1].starts_at
-                    else:
-                        iNextHourLevel = stringLevelToInt(home.current_subscription.price_info.tomorrow[0].level)
-                        sNextHour = home.current_subscription.price_info.tomorrow[0].starts_at
+                    iCurrentState = priceArrayToday[i]
+                    iNextHourState = priceArrayToday[i + 1]
+                    sNextHour = home.current_subscription.price_info.today[i + 1].starts_at
+
                     break
+        else:
+            iCurrentState = 1
 
-        q = logic.main(iCurrentLevel, iNextHourLevel, rActTemp, args.min_temp, args.max_temp)
+        if iCurrentState == 0 and rActTemp >= args.min_temp:
+            # Turn off heating
+            Q0 = False
+            Q1 = True
+        elif iCurrentState == 1:
+            # Normal operation
+            Q0 = False
+            Q1 = False
+        elif iCurrentState == 2:
+            # DHW temp increased
+            Q0 = True
+            Q1 = False
+        elif iCurrentState == 3 and rActTemp <= args.max_temp:
+            # Heat to max temperature
+            Q0 = True
+            Q1 = True
+        else:
+            Q0 = False
+            Q1 = False
 
-        if rActTemp != rActTemp_last or iCurrentLevel != iCurrentLevel_last or iNextHourLevel != iNextHourLevel_last:
+        if rActTemp != rActTemp_last or iCurrentState != iCurrentState_last or iNextHourState != iNextHourState_last:
             print(f"Current temperature = {rActTemp}")
-            print(f"Current level = {iCurrentLevel} @ {sCurrentHour}")
-            print(f"Next level = {iNextHourLevel} @ {sNextHour}")
+            print(f"Current state = {iCurrentState} @ {sCurrentHour}")
+            print(f"Next state = {iNextHourState} @ {sNextHour}")
             print(f"Q0 = {q[0]}")
             print(f"Q1 = {q[1]}")
             try:
@@ -121,8 +159,8 @@ def main():
                 print("Unable to send data to relays")
 
         rActTemp_last = rActTemp
-        iCurrentLevel_last = iCurrentLevel
-        iNextHourLevel_last = iNextHourLevel
+        iCurrentState_last = iCurrentState
+        iNextHourState_last = iNextHourState
 
 
         time.sleep(cInterval)
