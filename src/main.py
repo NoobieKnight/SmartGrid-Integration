@@ -120,9 +120,11 @@ def main():
             for i in range(len(home.current_subscription.price_info.today)):
                 if home.current_subscription.price_info.current.starts_at == home.current_subscription.price_info.today[i].starts_at:
                     iCurrentState = priceArrayToday[i]
-                    iNextHourState = priceArrayToday[i + 1]
-                    sNextHour = home.current_subscription.price_info.today[i + 1].starts_at
-
+                    try:
+                      iNextHourState = priceArrayToday[i + 1]
+                      sNextHour = home.current_subscription.price_info.today[i + 1].starts_at
+                    except:
+                      pass
                     break
         else:
             iCurrentState = 1
