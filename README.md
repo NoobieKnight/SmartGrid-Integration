@@ -26,9 +26,10 @@ My steps (probably not the most efficant/best)
 1. docker build -t tibber_smartgrid https://github.com/NoobieKnight/SmartGrid-Integration.git
 2. docker images (To figure out the image id)
 3. docker run -d --name=tibber_smartgrid --net=bridge -p 5000:5000 [image id from previus step] \
-                 --api_token "[API token for Tibber]" \
+                 --area "[Price area]" \
                  --relay_1 "[Shelly relay 1 IP]" \
-                 --relay_2 "[Shelly relay 2 IP]"
+                 --relay_2 "[Shelly relay 2 IP]" \
+                 --highPrice [0.8]
 
 Arguments avalible:
 
