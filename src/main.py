@@ -1,38 +1,39 @@
 from threading import Thread
 import signal
 import time
-import tibber
-import ShellyPy
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import argparse
+import requests
 
 
 # Initialize parser
 parser = argparse.ArgumentParser()
 
 # Adding optional argument
-parser.add_argument("--api_token", type=str, required=True, help = "Tibber API token")
-parser.add_argument("--relay_1", type=str, required=True, help = "IP for Shelly relay 1")
-parser.add_argument("--relay_2", type=str, required=True, help = "IP for Shelly relay 2")
-parser.add_argument("--home_id", type=int, default=0, help = "Home ID from Tibber (Default = 0)")
+parser.add_argument("--area", type=str, required=True, help="Price area (SE1=North Sweden,"
+                                                            "SE2=North middle Sweden,"
+                                                            "SE3=South middle Sweden,"
+                                                            "SE3=South Sweden")
+parser.add_argument("--relay_1", type=str, required=True, help="IP for Shelly relay 1")
+parser.add_argument("--relay_2", type=str, required=True, help="IP for Shelly relay 2")
 parser.add_argument("--min_temp", type=float, default=18.0,
-                    help = "Lowest temperature to allow no production (Default = 18.0)")
+                    help="Lowest temperature to allow no production (Default = 18.0)")
 parser.add_argument("--max_temp", type=float, default=22.0,
-                    help = "Maximum temperature to allow for extra production (Default = 22.0)")
-parser.add_argument("--port", type=int, default=5000, help = "Port for webhook server (Default = 5000)")
-parser.add_argument("--upd_interval", type=int, default=120, help = "Update interval for Tibber (Default = 120)")
+                    help="Maximum temperature to allow for extra production (Default = 22.0)")
+parser.add_argument("--port", type=int, default=5000, help="Port for webhook server (Default = 5000)")
+parser.add_argument("--highPrice", type=int, default=0.0, help="The price has to be higher than this to stop heatpump for more than just the most expensive hour in AM and PM"
+                                                               "(Before taxes (Default = 0.0))")
+parser.add_argument("--hours", type=int, default=3, help="Number of hours to turn off and on heatpump"
+                                                         "2 = Decrease setpoint 2 hours AM and 2 hours PM"
+                                                         "Increase setpoint 2 hours AM and 2 hours PM)")
 
 args = parser.parse_args()
-
-# IP Shelly devices
-cShelly_Relay1 = ShellyPy.Shelly(args.relay_1)
-cShelly_Relay2 = ShellyPy.Shelly(args.relay_2)
 
 cInterval = 10
 
 # Declare variables
 rActTemp = 20.0
-tibberUpToDate = False
+priceUpToDate = False
 run = True
 priceArrayToday = []
 
@@ -50,81 +51,103 @@ def handler_stop_signals(signum, frame):
     run = False
 
 
-def getTibberData():
-    global home
-    global tibberUpToDate
-    global priceArrayToday
-    while run:
-        try:
-            # Get Tibber data
-            tibberAccount = tibber.Account(args.api_token)
-            home = tibberAccount.homes[args.home_id]
-        except:
-            print("Tibber: Connection error")
-            tibberUpToDate = False
+def sendShellyCommand(ip, state):
+    try:
+        if state:
+            url = 'http://' + ip + '/relay/0?turn=on'
         else:
+            url = 'http://' + ip + '/relay/0?turn=off'
+        response = requests.get(url)
+        result = True
+    except:
+        result = False
+    return result
+
+
+def getPriceData():
+    global priceUpToDate
+    global priceArrayToday
+    try:
+            urlCurrentDay = time.strftime('%Y/%m-%d', time.localtime())
+
+            url = 'https://www.elprisetjustnu.se/api/v1/prices/' + urlCurrentDay + '_' + args.area + '.json'
+            response = requests.get(url)
+
             # Declare lists
             priceArrayToday = []
             priceArrayToday_AM = []
             priceArrayToday_PM = []
 
-            # Copy data from Tibber
-            for i in range(len(home.current_subscription.price_info.today)):
+            # Copy data from price data
+            for i in range(len(response.json())):
 
                 # Copy to standard list
-                priceArrayToday.append(1)
+                priceArrayToday.append([response.json()[i]['time_start'], 1])
 
                 # Copy to list for before midday
                 if i < 12:
                     priceArrayToday_AM.append([0.0, 0])
-                    priceArrayToday_AM[i][0] = home.current_subscription.price_info.today[i].total
+                    priceArrayToday_AM[i][0] = response.json()[i]['SEK_per_kWh']
                     priceArrayToday_AM[i][1] = i
 
                 # Copy to list for after midday
                 else:
                     priceArrayToday_PM.append([0.0, 0])
-                    priceArrayToday_PM[i - 12][0] = home.current_subscription.price_info.today[i].total
+                    priceArrayToday_PM[i - 12][0] = response.json()[i]['SEK_per_kWh']
                     priceArrayToday_PM[i - 12][1] = i
 
             # Sort the lists according to price (Descending)
             priceArrayToday_AM.sort(reverse=True, key=lambda l: l[0])
             priceArrayToday_PM.sort(reverse=True, key=lambda l: l[0])
 
-            # Turn off heatpump for the 3 most expensive hours in both before and after midday
-            for i in range(3):
+            # Turn off heatpump for the x most expensive hours in both before and after midday
+            for i in range(args.hours):
                 # Most expensive, Turn heatpump off
-                priceArrayToday[priceArrayToday_AM[i][1]] = 0
-                priceArrayToday[priceArrayToday_PM[i][1]] = 0
+                if priceArrayToday_AM[i][0] > args.highPrice or i == 0:
+                    priceArrayToday[priceArrayToday_AM[i][1]][1] = 0
+                if priceArrayToday_PM[i][0] > args.highPrice or i == 0:
+                    priceArrayToday[priceArrayToday_PM[i][1]][1] = 0
                 # Cheapest, Turn heatpump on
-                priceArrayToday[priceArrayToday_AM[len(priceArrayToday_AM) - i - 1][1]] = 3
-                priceArrayToday[priceArrayToday_PM[len(priceArrayToday_PM) - i - 1][1]] = 3
+                priceArrayToday[priceArrayToday_AM[len(priceArrayToday_AM) - i - 1][1]][1] = 3
+                priceArrayToday[priceArrayToday_PM[len(priceArrayToday_PM) - i - 1][1]][1] = 3
 
-            tibberUpToDate = True
-        time.sleep(args.upd_interval)
+            priceUpToDate = True
+
+    except:
+        print("Price data: Connection error")
+        priceUpToDate = False
 
 
 def main():
+    global priceUpToDate
+
     iCurrentState = 1
-    iNextHourState = 1
-    sCurrentHour = "NaN"
-    sNextHour = "NaN"
     rActTemp_last = rActTemp
     iCurrentState_last = iCurrentState
-    iNextHourState_last = iNextHourState
+    sCurrentHour_last = 'NaN'
     q = [False, False]
 
     while run:
-        if tibberUpToDate:
-            sCurrentHour = home.current_subscription.price_info.current.starts_at
-            # Loop list until current hour found in array
-            for i in range(len(home.current_subscription.price_info.today)):
-                if home.current_subscription.price_info.current.starts_at == home.current_subscription.price_info.today[i].starts_at:
-                    iCurrentState = priceArrayToday[i]
-                    iNextHourState = priceArrayToday[i + 1]
-                    sNextHour = home.current_subscription.price_info.today[i + 1].starts_at
 
-                    break
+        if not priceUpToDate:
+            getPriceData()
+
+        tempCurrentHour = time.strftime('%Y-%m-%dT%H:00:00%z', time.localtime())
+        sCurrentHour = tempCurrentHour[:22] + ':' + tempCurrentHour[22:]
+        if priceUpToDate:
+            try:
+                # Loop list until current hour found in array
+                for i in range(len(priceArrayToday)):
+                    if priceArrayToday[i][0] == sCurrentHour:
+                        iCurrentState = priceArrayToday[i][1]
+
+                        break
+                if i > len(priceArrayToday):
+                    priceUpToDate = False
+            except:
+                priceUpToDate = False
         else:
+            sCurrentHour = 'NaN'
             iCurrentState = 1
 
         if iCurrentState == 0 and rActTemp >= args.min_temp:
@@ -147,22 +170,22 @@ def main():
             q[0] = False
             q[1] = False
 
-        if rActTemp != rActTemp_last or iCurrentState != iCurrentState_last or iNextHourState != iNextHourState_last:
+        if rActTemp != rActTemp_last or iCurrentState != iCurrentState_last or sCurrentHour != sCurrentHour_last:
             print(f"Current temperature = {rActTemp}")
             print(f"Current state = {iCurrentState} @ {sCurrentHour}")
-            print(f"Next state = {iNextHourState} @ {sNextHour}")
-            print(f"Q0 = {q[0]}")
-            print(f"Q1 = {q[1]}")
-            try:
-                cShelly_Relay1.relay(0, turn=q[0])
-                cShelly_Relay2.relay(0, turn=q[1])
-            except:
-                print("Unable to send data to relays")
+            print(f"Q0 = {q[0]} Q1 = {q[1]}")
+
+            retval = sendShellyCommand(args.relay_1, q[0])
+            if not retval:
+                print('Failed to send data to relay 1')
+            else:
+                retval = sendShellyCommand(args.relay_2, q[1])
+                if not retval:
+                    print('Failed to send data to relay 2')
 
         rActTemp_last = rActTemp
         iCurrentState_last = iCurrentState
-        iNextHourState_last = iNextHourState
-
+        sCurrentHour_last = sCurrentHour
 
         time.sleep(cInterval)
 
@@ -171,15 +194,16 @@ signal.signal(signal.SIGINT, handler_stop_signals)
 signal.signal(signal.SIGTERM, handler_stop_signals)
 
 # Declare threads
-t1_tibber = Thread(target=getTibberData)
-t2_main = Thread(target=main)
+t1_main = Thread(target=main)
 
 try:
-    t1_tibber.start()
-    t2_main.start()
+    # Start threads
+    t1_main.start()
+    try:
+        # Start http server
+        httpd = HTTPServer(('', args.port), SimpleHTTPRequestHandler)
+        httpd.serve_forever()
+    except:
+        print("Unable to start http server")
 except:
     print("Unable to start threads")
-
-httpd = HTTPServer(('', args.port), SimpleHTTPRequestHandler)
-httpd.serve_forever()
-
