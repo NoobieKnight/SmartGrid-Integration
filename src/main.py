@@ -4,6 +4,7 @@ import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import argparse
 import requests
+import os
 
 
 # Initialize parser
@@ -37,7 +38,7 @@ priceUpToDate = False
 run = True
 priceArrayToday = []
 
-
+os.environ['TZ'] = 'Europe/Stockholm'
 time.tzset()
 
 
