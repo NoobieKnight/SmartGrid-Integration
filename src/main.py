@@ -38,6 +38,9 @@ run = True
 priceArrayToday = []
 
 
+time.tzset()
+
+
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         global rActTemp
