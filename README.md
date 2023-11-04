@@ -2,11 +2,11 @@
 
 This Python script controls two shelly relays to integrate smart grid integration in to compatible heat pumps
 
-This is the first thing I've done in python so its quite rough
+This is the first thing I've done in python, so it's quite rough
 
 # Things needed
 
-* 2 Shelly one
+* 2 Shelly relays
 * 1 Shelly plus H/T (optional)
   Or other smart temperature sensor. Temperature is used to make sure that temperature does not go below or higher then specified temperature.
   
@@ -22,9 +22,9 @@ This can be done by setting up a webhook in a shelly plus H/T.
   
 
 My steps (probably not the most efficant/best)
-1. docker build -t tibber_smartgrid https://github.com/NoobieKnight/SmartGrid-Integration.git
+1. docker build -t heatpump_smartgrid https://github.com/NoobieKnight/SmartGrid-Integration.git
 2. docker images (To figure out the image id)
-3. docker run -d --name=tibber_smartgrid --net=bridge -p 5000:5000 [image id from previus step] \
+3. docker run -d --name=heatpump_smartgrid --net=bridge -p 5000:5000 [image id from previus step] \
                  --area "[Price area]" \
                  --relay_1 "[Shelly relay 1 IP]" \
                  --relay_2 "[Shelly relay 2 IP]" \
@@ -64,13 +64,14 @@ Port for webhook server (Default = 5000)
   
 --highPrice
 
-
 The price has to be higher than this to stop heatpump for more than just the most expensive hour in AM and PM (Before taxes (Default = 0.0))
 
 
 --hours
 
-
 Number of hours to turn off and on heatpump 2 = Decrease setpoint 2 hours AM and 2 hours PM Increase setpoint 2 hours AM and 2 hours PM
 
   
+--TZ
+
+Timezone as TZ identifier (Default = Europe/Stockholm)

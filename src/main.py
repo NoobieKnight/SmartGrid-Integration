@@ -180,8 +180,8 @@ def main():
             sPrintStatesLower = '| '
             for i in range(len(priceArrayToday)):
                 if priceArrayToday[i][1] != 1:
-                    sPrintStatesUpper += priceArrayToday[i][0] + ' | '
-                    sPrintStatesLower += '------------' + str(priceArrayToday[i][1]) + '------------ | '
+                    sPrintStatesUpper += priceArrayToday[i][0][11:16] + ' | '
+                    sPrintStatesLower += '  ' + str(priceArrayToday[i][1]) + '   | '
             print(f"Current temperature = {rActTemp}")
             print(f"Current state = {iCurrentState} @ {sCurrentHour}")
             print(f"Q0 = {q[0]} Q1 = {q[1]}")
