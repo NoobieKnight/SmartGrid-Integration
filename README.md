@@ -30,7 +30,7 @@ My steps (probably not the most efficant/best)
                  --relay_2 "[Shelly relay 2 IP]" \
                  --highPrice [0.8]
 
-Arguments avalible:
+Arguments available:
 
 --area
 
