@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--area", type=str, required=True, help="Price area (SE1=North Sweden,"
                                                             "SE2=North middle Sweden,"
                                                             "SE3=South middle Sweden,"
-                                                            "SE3=South Sweden")
+                                                            "SE4=South Sweden")
 parser.add_argument("--relay_1", type=str, required=True, help="IP for Shelly relay 1")
 parser.add_argument("--relay_2", type=str, required=True, help="IP for Shelly relay 2")
 parser.add_argument("--min_temp", type=float, default=18.0,
@@ -27,6 +27,7 @@ parser.add_argument("--highPrice", type=float, default=0.0, help="The price has 
 parser.add_argument("--hours", type=int, default=3, help="Number of hours to turn off and on heatpump"
                                                          "2 = Decrease setpoint 2 hours AM and 2 hours PM"
                                                          "Increase setpoint 2 hours AM and 2 hours PM)")
+parser.add_argument("--TZ", type=str, default='Europe/Stockholm', help="Timezone (Default = Europe/Stockholm')")
 
 args = parser.parse_args()
 
@@ -38,7 +39,7 @@ priceUpToDate = False
 run = True
 priceArrayToday = []
 
-# os.environ['TZ'] = 'Europe/Stockholm'
+os.environ['TZ'] = args.TZ
 time.tzset()
 
 
@@ -146,7 +147,7 @@ def main():
                         iCurrentState = priceArrayToday[i][1]
 
                         break
-                if i > len(priceArrayToday):
+                if i >= len(priceArrayToday):
                     priceUpToDate = False
             except:
                 priceUpToDate = False
