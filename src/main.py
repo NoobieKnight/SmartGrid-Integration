@@ -176,10 +176,20 @@ def main():
             q[1] = False
 
         if rActTemp != rActTemp_last or iCurrentState != iCurrentState_last or sCurrentHour != sCurrentHour_last:
+            sPrintStatesUpper = '| '
+            sPrintStatesLower = '| '
+            for i in range(len(priceArrayToday)):
+                if priceArrayToday[i][1] != 1:
+                    sPrintStatesUpper += priceArrayToday[i][0] + ' | '
+                    sPrintStatesLower += '------------' + str(priceArrayToday[i][1]) + '------------ | '
             print(f"Current temperature = {rActTemp}")
             print(f"Current state = {iCurrentState} @ {sCurrentHour}")
             print(f"Q0 = {q[0]} Q1 = {q[1]}")
-
+            print('****************************************************')
+            print('Affected hours today:')
+            print(sPrintStatesUpper)
+            print(sPrintStatesLower)
+            print('****************************************************')
             retval = sendShellyCommand(args.relay_1, q[0])
             if not retval:
                 print('Failed to send data to relay 1')
