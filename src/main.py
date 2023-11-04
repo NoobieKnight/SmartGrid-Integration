@@ -38,7 +38,7 @@ priceUpToDate = False
 run = True
 priceArrayToday = []
 
-os.environ['TZ'] = 'Europe/Stockholm'
+# os.environ['TZ'] = 'Europe/Stockholm'
 time.tzset()
 
 
