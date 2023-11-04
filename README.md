@@ -1,12 +1,11 @@
 # SmartGrid-Integration
 
-This Python script controls two shelly relays to integrate smart grid integration in to compatible heat pumps, with the help of the Tibber API
+This Python script controls two shelly relays to integrate smart grid integration in to compatible heat pumps
 
 This is the first thing I've done in python so its quite rough
 
 # Things needed
 
-* A Tibber subscription
 * 2 Shelly one
 * 1 Shelly plus H/T (optional)
   Or other smart temperature sensor. Temperature is used to make sure that temperature does not go below or higher then specified temperature.
@@ -26,15 +25,16 @@ My steps (probably not the most efficant/best)
 1. docker build -t tibber_smartgrid https://github.com/NoobieKnight/SmartGrid-Integration.git
 2. docker images (To figure out the image id)
 3. docker run -d --name=tibber_smartgrid --net=bridge -p 5000:5000 [image id from previus step] \
-                 --api_token "[API token for Tibber]" \
+                 --area "[Price area]" \
                  --relay_1 "[Shelly relay 1 IP]" \
-                 --relay_2 "[Shelly relay 2 IP]"
+                 --relay_2 "[Shelly relay 2 IP]" \
+                 --highPrice [0.8]
 
 Arguments avalible:
 
---api_token
+--area
 
-Tibber API token
+Price area SE1=North Sweden, SE2=North middle Sweden, SE3=South middle Sweden, SE4=South Sweden"
   
   
 --relay_1
@@ -45,11 +45,6 @@ IP for Shelly relay 1
 --relay_2
 
 IP for Shelly relay 2
-  
-  
---home_id
-
-Home ID from Tibber (Default = 0) Use this if you have multiple houses with Tibber subscription
   
   
 --min_temp
@@ -67,7 +62,15 @@ Maximum temperature to allow for extra production (Default = 22.0)
 Port for webhook server (Default = 5000)
   
   
---upd_interval
+--highPrice
 
-Update interval for Tibber (Default = 120)
+
+The price has to be higher than this to stop heatpump for more than just the most expensive hour in AM and PM (Before taxes (Default = 0.0))
+
+
+--hours
+
+
+Number of hours to turn off and on heatpump 2 = Decrease setpoint 2 hours AM and 2 hours PM Increase setpoint 2 hours AM and 2 hours PM
+
   

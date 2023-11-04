@@ -21,7 +21,7 @@ parser.add_argument("--min_temp", type=float, default=18.0,
 parser.add_argument("--max_temp", type=float, default=22.0,
                     help="Maximum temperature to allow for extra production (Default = 22.0)")
 parser.add_argument("--port", type=int, default=5000, help="Port for webhook server (Default = 5000)")
-parser.add_argument("--highPrice", type=int, default=0.0, help="The price has to be higher than this to stop heatpump for more than just the most expensive hour in AM and PM"
+parser.add_argument("--highPrice", type=float, default=0.0, help="The price has to be higher than this to stop heatpump for more than just the most expensive hour in AM and PM"
                                                                "(Before taxes (Default = 0.0))")
 parser.add_argument("--hours", type=int, default=3, help="Number of hours to turn off and on heatpump"
                                                          "2 = Decrease setpoint 2 hours AM and 2 hours PM"
