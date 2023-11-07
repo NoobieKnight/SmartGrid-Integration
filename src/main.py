@@ -147,7 +147,7 @@ def main():
                         iCurrentState = priceArrayToday[i][1]
 
                         break
-                if i >= len(priceArrayToday):
+                else:
                     priceUpToDate = False
             except:
                 priceUpToDate = False
