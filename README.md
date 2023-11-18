@@ -15,20 +15,20 @@ This is the first thing I've done in python, so it's quite rough
 
 I run the script in a docker container on my unraid server, but it's also possible to run on real hardware or vm
 
-Update actual temperature by sending a GET request to [IP]:[PORT]/t=[temperature]
+Update actual temperature by sending a GET request to <IP>:<PORT>/t=<temperature>
 
 This can be done by setting up a webhook in a shelly plus H/T.
-  http://[IP]:[PORT]/t=$temperature
+  http://<IP>:<PORT>/t=$temperature
   
 
 My steps (probably not the most efficant/best)
 1. docker build -t heatpump_smartgrid https://github.com/NoobieKnight/SmartGrid-Integration.git
 2. docker images (To figure out the image id)
-3. docker run -d --name=heatpump_smartgrid --net=bridge -p 5000:5000 [image id from previus step] \
-                 --area "[Price area]" \
-                 --relay_1 "[Shelly relay 1 IP]" \
-                 --relay_2 "[Shelly relay 2 IP]" \
-                 --highPrice [0.8]
+3. docker run -d --name=heatpump_smartgrid --net=bridge -p 5000:5000 <image id from previus step> \
+                 --area "<Price area>" \
+                 --relay_1 "<Shelly relay 1 IP>" \
+                 --relay_2 "<Shelly relay 2 IP>" \
+                 --highPrice <0.8>
 
 Arguments available:
 
